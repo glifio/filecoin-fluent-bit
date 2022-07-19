@@ -1,0 +1,14 @@
+configuration:
+  role_arn: noRoleHere
+  namespace: logging
+  image_name: amazon/aws-for-fluent-bit
+
+opensearch:
+  configuration:
+    os_domain: os_domain_fqdn_should_be
+    aws_region: ap-northeast-1
+
+# the list where we can find the image source code and available versions
+# Link: https://github.com/aws/aws-for-fluent-bit
+
+
