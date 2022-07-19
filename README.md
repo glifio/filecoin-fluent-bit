@@ -1,3 +1,8 @@
+
+| Dev	                                                                                                                                                                                                                                                                                                                      | Main 	 |
+|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------|
+| ![Build Status](https://codebuild.ap-northeast-1.amazonaws.com/badges?uuid=eyJlbmNyeXB0ZWREYXRhIjoieGhlck4vWkxDR3ExU3VmSEVyYlBUek9MVDFMY0Zqc3VaVWd5d1crUEFSZ1pYc1VnemNsWVY2cGpJbUdGQ1JXeGlEQ2pYaGRsOC9GZTczNnlhNUIzQlVJPSIsIml2UGFyYW1ldGVyU3BlYyI6InRDRDdKdHJUNzZ5TjIzVW4iLCJtYXRlcmlhbFNldFNlcmlhbCI6MX0%3D&branch=dev) |![Build Status](https://codebuild.ap-northeast-1.amazonaws.com/badges?uuid=eyJlbmNyeXB0ZWREYXRhIjoieGhlck4vWkxDR3ExU3VmSEVyYlBUek9MVDFMY0Zqc3VaVWd5d1crUEFSZ1pYc1VnemNsWVY2cGpJbUdGQ1JXeGlEQ2pYaGRsOC9GZTczNnlhNUIzQlVJPSIsIml2UGFyYW1ldGVyU3BlYyI6InRDRDdKdHJUNzZ5TjIzVW4iLCJtYXRlcmlhbFNldFNlcmlhbCI6MX0%3D&branch=main)|
+
 This readme is about how to setup and create FluentBit DaemonSet for your cluster.
 Note: this readme isn't had part about spinning up of AWS OpenSearch, let's assume that you already have one.
 
