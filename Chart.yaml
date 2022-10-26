@@ -4,11 +4,11 @@ apiVersion: v2
 # to the repository with a name like AWS ECR were named.
 # HOW-TO: Push chart to a AWS ECR repo https://docs.aws.amazon.com/AmazonECR/latest/userguide/push-oci-artifact.html
 
-name: filecoin-dev-apn1-glif-chart-fluent-bit
+name: filecoin-mainnet-apn1-glif-chart-fluent-bit
 description: fluent-bit helm chart for Kubernetes
 
 type: application
 
-version: 1.0.0
+version: 1.0.1
 
 appVersion: "2.26.0"

@@ -38,7 +38,7 @@ data:
     [INPUT]
         Name              tail
         Tag               kube.*
-        Path              /var/log/containers/*spacerace*.log
+        Path              /var/log/containers/*network*.log, /var/log/containers/cid-checker*backend*.log
         Exclude_Path      /var/log/containers/*cache-deployment*.log, /var/log/containers/*sync-s3-marketdeals*.log, /var/log/containers/*autoresizer*.log, /var/log/containers/*autoresizer*.log, /var/log/containers/*snapshot*.log, /var/log/containers/*lily*.log
         Parser            docker
         Docker_Mode       On
