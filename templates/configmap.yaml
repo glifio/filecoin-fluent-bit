@@ -7,105 +7,104 @@ metadata:
   labels:
     k8s-app: fluent-bit
 data:
-  # Configuration files: server, input, filters and output
-  # ======================================================
-  filter-kubernetes.conf: |
-    [FILTER]
-        Name                kubernetes
-        Match               kube.*
-        Kube_URL            https://kubernetes.default.svc:443
-        Kube_CA_File        /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
-        Kube_Token_File     /var/run/secrets/kubernetes.io/serviceaccount/token
-        Kube_Tag_Prefix     kube.var.log.containers.
-        Merge_Log           On
-        Merge_Log_Key       log_processed
-        K8S-Logging.Parser  On
-        K8S-Logging.Exclude Off
+  parsers.conf: |
+    [PARSER]
+      Name        docker
+      Format      json
+      Time_Key    time
+      Time_Format %Y-%m-%dT%H:%M:%S.%L
+      Time_Keep   On
+
+    [PARSER]
+      name        kong_proxy
+      format      json
+      time_key    started_at
+      time_format %s
+      time_keep   On
   fluent-bit.conf: |
     [SERVICE]
-        Flush         1
-        Log_Level     info
-        Daemon        off
-        Parsers_File  parsers.conf
-        HTTP_Server   On
-        HTTP_Listen   0.0.0.0
-        HTTP_Port     2020
-
-    @INCLUDE input-kubernetes.conf
-    @INCLUDE filter-kubernetes.conf
-    @INCLUDE output-elasticsearch.conf
-  input-kubernetes.conf: |
+      Flush         1
+      Log_Level     notice
+      Daemon        off
+      Parsers_File  parsers.conf
+      HTTP_Server   On
+      HTTP_Listen   0.0.0.0
+      HTTP_Port     2020
+    @INCLUDE kong.conf
+  lotus.conf: |
     [INPUT]
-        Name              tail
-        Tag               kube.*
-        Path              /var/log/containers/*network*.log, /var/log/containers/cid-checker*backend*.log
-        Exclude_Path      /var/log/containers/*cache-deployment*.log, /var/log/containers/*sync-s3-marketdeals*.log, /var/log/containers/*autoresizer*.log, /var/log/containers/*autoresizer*.log, /var/log/containers/*snapshot*.log, /var/log/containers/*lily*.log
-        Parser            docker
-        Docker_Mode       On
-        DB                /var/log/flb_kube.db
-        Mem_Buf_Limit     50MB
-        Skip_Long_Lines   On
-        Refresh_Interval  10
-  # put `Trace_Error On` to enable trace logs
-  # Logstash_DateFormat used to store logs week by month in separate indexes
-  output-elasticsearch.conf: |
+      Name              tail
+      Tag               kube.*
+      Path              /var/log/containers/*network*.log, /var/log/containers/cid-checker*backend*.log
+      Exclude_Path      /var/log/containers/*cache-deployment*.log, /var/log/containers/*sync-s3-marketdeals*.log, /var/log/containers/*autoresizer*.log, /var/log/containers/*autoresizer*.log, /var/log/containers/*snapshot*.log, /var/log/containers/*lily*.log
+      Parser            docker
+      Docker_Mode       On
+      DB                /var/log/flb_kube.db
+      Mem_Buf_Limit     50MB
+      Skip_Long_Lines   On
+      Refresh_Interval  10
+    
+    [FILTER]
+      Name                kubernetes
+      Match               kube.*
+      Kube_URL            https://kubernetes.default.svc:443
+      Kube_CA_File        /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+      Kube_Token_File     /var/run/secrets/kubernetes.io/serviceaccount/token
+      Kube_Tag_Prefix     kube.var.log.containers.
+      Merge_Log           On
+      Merge_Log_Key       log_processed
+      K8S-Logging.Parser  On
+      K8S-Logging.Exclude Off
+    
     [OUTPUT]
-        Name                es
-        Match               *
-        Host                {{ .Values.opensearch.configuration.os_domain }}
-        Port                443
-        TLS                 On
-        AWS_Auth            On
-        AWS_Region          {{ .Values.opensearch.configuration.aws_region }}
-        Retry_Limit         6
-        Trace_Error         On
-        Logstash_Format     On
-        Logstash_Prefix_Key kubernetes['pod_name']
-        Logstash_DateFormat %Y.%m
-  parsers.conf: |
-
-    [PARSER]
-        Name   apache
-        Format regex
-        Regex  ^(?<host>[^ ]*) [^ ]* (?<user>[^ ]*) \[(?<time>[^\]]*)\] "(?<method>\S+)(?: +(?<path>[^\"]*?)(?: +\S*)?)?" (?<code>[^ ]*) (?<size>[^ ]*)(?: "(?<referer>[^\"]*)" "(?<agent>[^\"]*)")?$
-        Time_Key time
-        Time_Format %d/%b/%Y:%H:%M:%S %z
-
-    [PARSER]
-        Name   apache2
-        Format regex
-        Regex  ^(?<host>[^ ]*) [^ ]* (?<user>[^ ]*) \[(?<time>[^\]]*)\] "(?<method>\S+)(?: +(?<path>[^ ]*) +\S*)?" (?<code>[^ ]*) (?<size>[^ ]*)(?: "(?<referer>[^\"]*)" "(?<agent>[^\"]*)")?$
-        Time_Key time
-        Time_Format %d/%b/%Y:%H:%M:%S %z
-
-    [PARSER]
-        Name   apache_error
-        Format regex
-        Regex  ^\[[^ ]* (?<time>[^\]]*)\] \[(?<level>[^\]]*)\](?: \[pid (?<pid>[^\]]*)\])?( \[client (?<client>[^\]]*)\])? (?<message>.*)$
-
-    [PARSER]
-        Name   nginx
-        Format regex
-        Regex ^(?<remote>[^ ]*) (?<host>[^ ]*) (?<user>[^ ]*) \[(?<time>[^\]]*)\] "(?<method>\S+)(?: +(?<path>[^\"]*?)(?: +\S*)?)?" (?<code>[^ ]*) (?<size>[^ ]*)(?: "(?<referer>[^\"]*)" "(?<agent>[^\"]*)")?$
-        Time_Key time
-        Time_Format %d/%b/%Y:%H:%M:%S %z
-
-    [PARSER]
-        Name   json
-        Format json
-        Time_Key time
-        Time_Format %d/%b/%Y:%H:%M:%S %z
-
-    [PARSER]
-        Name        docker
-        Format      json
-        Time_Key    time
-        Time_Format %Y-%m-%dT%H:%M:%S.%L
-        Time_Keep   On
-
-    [PARSER]
-        Name        syslog
-        Format      regex
-        Regex       ^\<(?<pri>[0-9]+)\>(?<time>[^ ]* {1,2}[^ ]* [^ ]*) (?<host>[^ ]*) (?<ident>[a-zA-Z0-9_\/\.\-]*)(?:\[(?<pid>[0-9]+)\])?(?:[^\:]*\:)? *(?<message>.*)$
-        Time_Key    time
-        Time_Format %b %d %H:%M:%S
+      Name                es
+      Match               kube.*
+      Host                {{ .Values.opensearch.configuration.os_domain }}
+      Port                443
+      TLS                 On
+      AWS_Auth            On
+      AWS_Region          {{ .Values.opensearch.configuration.aws_region }}
+      Retry_Limit         6
+      Trace_Error         On
+      Logstash_Format     On
+      Logstash_Prefix_Key kubernetes['pod_name']
+      Logstash_DateFormat %Y.%m
+  kong.conf: |
+    [INPUT]
+      name             tail
+      tag              filecoin_auth
+      path             /var/log/containers/*kong_proxy*.log
+      db               /var/log/flb_kong_proxy.db
+      mem_buf_limit    50MB
+      refresh_interval 5
+      parser           kong_proxy
+    
+    [FILTER]
+      name   grep
+      match  filecoin_auth
+      regex  log .*token.*
+    
+    [FILTER]
+      name parser
+      match filecoin_auth
+      key_Name log
+      parser kong_proxy
+    
+    [FILTER]
+      name log_to_metrics
+      match filecoin_auth
+      tag filecoin_auth_metrics
+      metric_mode counter
+      metric_name authorized_requests
+      metric_description This metric counts authorized requests
+      add_label domain_name $request['headers']['host']
+      add_label method $request['method']
+      add_label endpoint $request['uri']
+      add_label token $request['token']
+      add_label status $response['status']
+    
+    [OUTPUT]
+      name  prometheus_exporter
+      match filecoin_auth_metrics
+      host  0.0.0.0
+      port  2021
