@@ -16,20 +16,21 @@ data:
       Time_Keep   On
 
     [PARSER]
-      name        kong_proxy
-      format      json
-      time_key    started_at
-      time_format %s
-      time_keep   On
+      name kong_log
+      format regex
+      regex (?<time>[0-9]{4}\/[0-9]{2}\/[0-9]{2}\s[0-9]{2}:[0-9]{2}:[0-9]{2})\s\[(?<level>[a-z]+)\] \d+#\d+: \*\d+ \[(?<emitter>[a-z]+)\] (?<file_name>[a-z|\.]+):(?<file_line>\d+) \[(?<plugin_name>[a-z|\-]+)\] token: (?<token>.+), body: (?<body>.+), client: (?<client>\d+\.\d+\.\d+.\d+), server: kong, request: \\"(?<request>.+)\\", host: \\"(?<host>[a-z|\.]+)\\"
+      time_key time
+      time_format %Y/%m/%d %H:%M:%S
   fluent-bit.conf: |
     [SERVICE]
       Flush         1
       Log_Level     notice
       Daemon        off
-      Parsers_File  parsers.conf
+      Parsers_File  /fluent-bit/etc/parsers.conf
       HTTP_Server   On
       HTTP_Listen   0.0.0.0
       HTTP_Port     2020
+    
     @INCLUDE kong.conf
   lotus.conf: |
     [INPUT]
@@ -71,37 +72,28 @@ data:
       Logstash_DateFormat %Y.%m
   kong.conf: |
     [INPUT]
-      name             tail
-      tag              filecoin_auth
-      path             /var/log/containers/*kong_proxy*.log
-      db               /var/log/flb_kong_proxy.db
-      mem_buf_limit    50MB
-      refresh_interval 5
-      parser           kong_proxy
-    
-    [FILTER]
-      name   grep
-      match  filecoin_auth
-      regex  log .*token.*
-    
-    [FILTER]
-      name parser
-      match filecoin_auth
-      key_Name log
-      parser kong_proxy
+      name tail
+      path /var/log/containers/*kong_proxy*.log
+      tag filecoin_auth
+      refresh_interval 10
+      buffer_max_size 500m
+      buffer_chunk_size 100m
+      skip_long_lines Off
+      static_batch_size 500m
+      db /var/log/kong.db
+      parser kong_log
     
     [FILTER]
       name log_to_metrics
       match filecoin_auth
-      tag filecoin_auth_metrics
       metric_mode counter
       metric_name authorized_requests
       metric_description This metric counts authorized requests
-      add_label domain_name $request['headers']['host']
-      add_label method $request['method']
-      add_label endpoint $request['uri']
-      add_label token $request['token']
-      add_label status $response['status']
+      regex host [a-z|\.]+
+      label_field host
+      label_field request
+      label_field token
+      tag filecoin_auth_metrics
     
     [OUTPUT]
       name  prometheus_exporter
