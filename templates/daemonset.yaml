@@ -34,6 +34,7 @@ spec:
           image: {{ .Values.configuration.image_name }}:{{ .Chart.AppVersion }}
           ports:
             - containerPort: 2020
+            - containerPort: 2021
           volumeMounts:
             - name: varlog
               mountPath: /var/log

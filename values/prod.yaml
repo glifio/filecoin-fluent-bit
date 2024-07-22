@@ -1,0 +1,6 @@
+configuration:
+  role_arn: arn:aws:iam::499623857295:role/filecoin-mainnet-apn1-glif-eks-fluent-bit
+
+opensearch:
+  configuration:
+    os_domain: kibana.node.glif.io
