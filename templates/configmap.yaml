@@ -18,7 +18,7 @@ data:
     [PARSER]
       name kong_log
       format regex
-      regex (?<time>[0-9]{4}\/[0-9]{2}\/[0-9]{2}\s[0-9]{2}:[0-9]{2}:[0-9]{2})\s\[(?<level>[a-z]+)\] \d+#\d+: \*\d+ \[(?<emitter>[a-z]+)\] (?<file_name>[a-z|\.]+):(?<file_line>\d+) \[(?<plugin_name>[a-z|\-]+)\] token: (?<token>.+), body: (?<body>.+), client: (?<client>\d+\.\d+\.\d+.\d+), server: kong, request: \\"(?<request>.+)\\", host: \\"(?<host>[a-z|\.]+)\\"
+      regex (?<time>[0-9]{4}\/[0-9]{2}\/[0-9]{2}\s[0-9]{2}:[0-9]{2}:[0-9]{2})\s\[(?<level>[a-z]+)\] \d+#\d+: \*\d+ \[(?<emitter>[a-z]+)\] (?<file_name>[a-z|\.]+):(?<file_line>\d+) \[(?<plugin_name>[a-z|\-]+)\] token: (?<token>.+), body: (?<body>.+), client: (?<client>\d+\.\d+\.\d+.\d+), server: kong, request: \"(?<request>.+)\", host: \"(?<host>[a-z|\.]+)\"
       time_key time
       time_format %Y/%m/%d %H:%M:%S
   fluent-bit.conf: |
